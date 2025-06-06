@@ -1,10 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>User Management</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        h2 { color: #333; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+        button { margin-top: 10px; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .section { margin-bottom: 40px; }
+        .message { margin-top: 10px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; border: 1px solid #ccc; }
+    </style>
 </head>
 <body>
-$END$
+
+<h2>User Management</h2>
+
+<div class="section">
+    <h3>Add New User</h3>
+    <form id="createForm">
+        <label>Name:</label>
+        <input type="text" id="name" required minlength="2" maxlength="50" />
+
+        <label>Address:</label>
+        <textarea id="address" required></textarea>
+
+        <label>Country:</label>
+        <input type="text" id="country" required />
+
+        <button type="submit">Create User</button>
+    </form>
+</div>
+
+<div class="section">
+    <h3>Update User</h3>
+    <form id="updateForm">
+        <label>User ID:</label>
+        <input type="number" id="updateId" required />
+
+        <label>New Name:</label>
+        <input type="text" id="updateName" required minlength="2" maxlength="50" />
+
+        <label>New Address:</label>
+        <textarea id="updateAddress" required></textarea>
+
+        <label>New Country:</label>
+        <input type="text" id="updateCountry" required />
+
+        <button type="submit">Update User</button>
+    </form>
+</div>
+
+<div class="section">
+    <h3>Delete User</h3>
+    <label>User ID:</label>
+    <input type="number" id="deleteId" />
+    <button onclick="deleteUser()">Delete</button>
+</div>
+
+<div class="section">
+    <h3>All Users</h3>
+    <button onclick="getAllUsers()">Refresh List</button>
+    <table id="userTable">
+        <thead>
+        <tr><th>ID</th><th>Name</th><th>Address</th><th>Country</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<div class="message" id="message"></div>
+
+<script>
+    function showMessage(msg, isError = false) {
+        const m = document.getElementById('message');
+        m.textContent = msg;
+        m.style.color = isError ? 'red' : 'green';
+    }
+
+    document.getElementById('createForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const user = {
+            name: document.getElementById('name').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            country: document.getElementById('country').value.trim()
+        };
+        fetch('/users', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(user)
+        }).then(res => {
+            if (!res.ok) throw new Error("Failed to create user");
+            return res.json();
+        }).then(data => {
+            showMessage("User created: ID " + data.id);
+            document.getElementById('createForm').reset();
+            getAllUsers();
+        }).catch(err => showMessage(err.message, true));
+    });
+
+    document.getElementById('updateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('updateId').value;
+        const updatedUser = {
+            name: document.getElementById('updateName').value.trim(),
+            address: document.getElementById('updateAddress').value.trim(),
+            country: document.getElementById('updateCountry').value.trim()
+        };
+        fetch('/users/' + id, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(updatedUser)
+        }).then(res => {
+            if (res.status === 404) throw new Error("User not found");
+            return res.json();
+        }).then(data => {
+            showMessage("User updated successfully");
+            getAllUsers();
+        }).catch(err => showMessage(err.message, true));
+    });
+
+    function deleteUser() {
+        const id = document.getElementById('deleteId').value;
+        fetch('/users/' + id, {
+            method: 'DELETE'
+        }).then(res => {
+            if (res.status === 204) {
+                showMessage("User deleted");
+                getAllUsers();
+            } else {
+                throw new Error("User not found");
+            }
+        }).catch(err => showMessage(err.message, true));
+    }
+
+    function getAllUsers() {
+        fetch('/users')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('userTable').querySelector('tbody');
+                tbody.innerHTML = '';
+                data.forEach(user => {
+                    const row = `<tr><td>${user.id}</td><td>${user.name}</td><td>${user.address}</td><td>${user.country}</td></tr>`;
+                    tbody.innerHTML += row;
+                });
+            }).catch(() => showMessage("Failed to fetch users", true));
+    }
+
+    window.onload = getAllUsers;
+</script>
+
 </body>
 </html>
