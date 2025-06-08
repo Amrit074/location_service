@@ -38,18 +38,18 @@
 
 # 2. Tech Stack
 
-| Layer               | Technology                       |
-| ------------------- | -------------------------------- |
-| Backend             | Java (Spring Boot)               |
-| GPS Data Source     | Who’s On First SQLite DB         |
-| IP Data Source      | MaxMind GeoLite2                 |
-| Database (optional) | PostgreSQL / MySQL (for caching) |
-| Build Tool          | Maven/Gradle                     |
-| API Testing         | Postman/Insomnia                 |
-| Monitoring          | Prometheus + Grafana             |
-| CI/CD               | GitHub Actions / Jenkins         |
-| Deployment          | **Future Improvement**           |
-| Security            | **Future Improvement**           |
+| Layer               | Technology    |
+| ------------------- |---------------|
+| Backend             | Java (Spring Boot) |
+| GPS Data Source     | Who’s On First SQLite DB |
+| IP Data Source      | MaxMind GeoLite2 |
+| Database (optional) | MySQL (for caching) |
+| Build Tool          | Maven         |
+| API Testing         | Postman       |
+| Monitoring          | Prometheus + Grafana |
+| CI/CD               | GitHub Actions / Jenkins |
+| Deployment          | **Future Improvement** |
+| Security            | **Future Improvement** |
 
 ---
 

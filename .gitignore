@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+## application properties ##
+# Application-specific local properties
+/src/main/resources/application-local.properties
+
+# Who's On First Database
+/data/

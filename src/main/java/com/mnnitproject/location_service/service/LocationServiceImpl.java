@@ -1,5 +1,6 @@
 package com.mnnitproject.location_service.service;
 
+import com.mnnitproject.location_service.dto.GPSLocationRequest;
 import com.mnnitproject.location_service.dto.IpLocationRequest;
 import com.mnnitproject.location_service.dto.LocationResponse;
 import com.mnnitproject.location_service.entity.ApiUsageLog;
@@ -20,11 +21,13 @@ public class LocationServiceImpl implements LocationService {
 
     private final GeoIPService geoIPService;
     private final ApiUsageLogRepository apiUsageLogRepository;
+    private final GPSService gpsService;
 
     @Autowired
-    public LocationServiceImpl(GeoIPService geoIPService, ApiUsageLogRepository apiUsageLogRepository) {
+    public LocationServiceImpl(GeoIPService geoIPService, GPSService gpsService, ApiUsageLogRepository apiUsageLogRepository) {
         this.geoIPService = geoIPService;
         this.apiUsageLogRepository = apiUsageLogRepository;
+        this.gpsService = gpsService;
     }
 
     @Override
@@ -62,6 +65,42 @@ public class LocationServiceImpl implements LocationService {
         } finally {
             long endTime = System.currentTimeMillis();
             logApiUsage("IP_LOOKUP", ipInput, status, clientIp, endTime - startTime);
+        }
+    }
+
+    @Override
+    public LocationResponse lookupGPSLocation(GPSLocationRequest request, String clientIp){
+        long startTime = System.currentTimeMillis();
+        String status = "UNKNOWN_STATUS";
+        LocationResponse response = null;
+        String gpsInput = (request != null && request.getLatitude() != null && request.getLongitude() != null) ?
+                ("Lat:" + request.getLatitude() + ",Lon:" + request.getLongitude()) : "N/A_GPS";
+
+        try {
+
+            if (request == null) {
+                logger.warn("Received null GpsLocationRequest from client: {}", clientIp);
+                status = "400_BAD_REQUEST";
+                throw new InvalidInputException("GPS location request cannot be null.");
+            }
+
+            logger.info("Calling GPSService to lookup GPS: {} from client: {}", gpsInput, clientIp);
+            response = gpsService.findLocationByGPS(request.getLatitude(), request.getLongitude());
+
+            status = "200_OK_FOUND";
+            return response;
+
+        } catch (InvalidInputException e) {
+            status = "400_BAD_REQUEST";
+            logger.warn("Invalid input for GPS {} from client {}: {}", gpsInput, clientIp, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            status = "500_INTERNAL_SERVER_ERROR";
+            logger.error("Unexpected error during GPS location processing for GPS {} from client {}: {}", gpsInput, clientIp, e.getMessage(), e);
+            throw e;
+        } finally {
+            long endTime = System.currentTimeMillis();
+            logApiUsage("GPS_LOOKUP", gpsInput, status, clientIp, endTime - startTime);
         }
     }
 

@@ -21,7 +21,7 @@ public class ApiUsageLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, updatable = false)
+    @Column( updatable = false)
     @CreationTimestamp
     private LocalDateTime requestTimestamp;
 
