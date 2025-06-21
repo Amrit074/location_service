@@ -2,157 +2,169 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>User Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Service Frontend</title>
     <style>
-        body { font-family: Arial; margin: 20px; }
-        h2 { color: #333; }
-        label { font-weight: bold; display: block; margin-top: 10px; }
-        input, textarea { width: 100%; padding: 8px; margin-top: 5px; }
-        button { margin-top: 10px; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        .section { margin-bottom: 40px; }
-        .message { margin-top: 10px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 8px; border: 1px solid #ccc; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result-box {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        .error-box {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
+<div class="container">
+    <h1>Location Service API Client</h1>
 
-<h2>User Management</h2>
+    <div class="section">
+        <h2>IP Lookup</h2>
+        <label for="ipInput">Enter IP Address:</label>
+        <input type="text" id="ipInput" value="8.8.8.8" placeholder="e.g., 8.8.8.8">
+        <button onclick="lookupIpLocation()">Lookup IP</button>
+    </div>
 
-<div class="section">
-    <h3>Add New User</h3>
-    <form id="createForm">
-        <label>Name:</label>
-        <input type="text" id="name" required minlength="2" maxlength="50" />
+    <div class="section">
+        <h2>GPS Lookup</h2>
+        <label for="latInput">Latitude:</label>
+        <input type="number" id="latInput" value="37.787221" placeholder="e.g., 37.787221">
+        <label for="lonInput">Longitude:</label>
+        <input type="number" id="lonInput" value="-122.400098" placeholder="e.g., -122.400098">
+        <button onclick="lookupGpsLocation()">Lookup GPS</button>
+    </div>
 
-        <label>Address:</label>
-        <textarea id="address" required></textarea>
-
-        <label>Country:</label>
-        <input type="text" id="country" required />
-
-        <button type="submit">Create User</button>
-    </form>
+    <div class="result-box" id="responseDisplay">
+        API Response will appear here...
+    </div>
+    <div class="error-box" id="errorDisplay" style="display: none;">
+        Errors will appear here...
+    </div>
 </div>
-
-<div class="section">
-    <h3>Update User</h3>
-    <form id="updateForm">
-        <label>User ID:</label>
-        <input type="number" id="updateId" required />
-
-        <label>New Name:</label>
-        <input type="text" id="updateName" required minlength="2" maxlength="50" />
-
-        <label>New Address:</label>
-        <textarea id="updateAddress" required></textarea>
-
-        <label>New Country:</label>
-        <input type="text" id="updateCountry" required />
-
-        <button type="submit">Update User</button>
-    </form>
-</div>
-
-<div class="section">
-    <h3>Delete User</h3>
-    <label>User ID:</label>
-    <input type="number" id="deleteId" />
-    <button onclick="deleteUser()">Delete</button>
-</div>
-
-<div class="section">
-    <h3>All Users</h3>
-    <button onclick="getAllUsers()">Refresh List</button>
-    <table id="userTable">
-        <thead>
-        <tr><th>ID</th><th>Name</th><th>Address</th><th>Country</th></tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
-
-<div class="message" id="message"></div>
 
 <script>
-    function showMessage(msg, isError = false) {
-        const m = document.getElementById('message');
-        m.textContent = msg;
-        m.style.color = isError ? 'red' : 'green';
-    }
+    const API_BASE_URL = 'http://localhost:8080/api/location'; // Your API base URL
 
-    document.getElementById('createForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const user = {
-            name: document.getElementById('name').value.trim(),
-            address: document.getElementById('address').value.trim(),
-            country: document.getElementById('country').value.trim()
-        };
-        fetch('/users', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(user)
-        }).then(res => {
-            if (!res.ok) throw new Error("Failed to create user");
-            return res.json();
-        }).then(data => {
-            showMessage("User created: ID " + data.id);
-            document.getElementById('createForm').reset();
-            getAllUsers();
-        }).catch(err => showMessage(err.message, true));
-    });
+    async function callApi(endpoint, data) {
+        const responseDisplay = document.getElementById('responseDisplay');
+        const errorDisplay = document.getElementById('errorDisplay');
+        responseDisplay.textContent = 'Loading...';
+        errorDisplay.style.display = 'none';
 
-    document.getElementById('updateForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const id = document.getElementById('updateId').value;
-        const updatedUser = {
-            name: document.getElementById('updateName').value.trim(),
-            address: document.getElementById('updateAddress').value.trim(),
-            country: document.getElementById('updateCountry').value.trim()
-        };
-        fetch('/users/' + id, {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(updatedUser)
-        }).then(res => {
-            if (res.status === 404) throw new Error("User not found");
-            return res.json();
-        }).then(data => {
-            showMessage("User updated successfully");
-            getAllUsers();
-        }).catch(err => showMessage(err.message, true));
-    });
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Your backend has @CrossOrigin("*") but for production
+                    // you might need specific CORS headers if you add security.
+                },
+                body: JSON.stringify(data)
+            });
 
-    function deleteUser() {
-        const id = document.getElementById('deleteId').value;
-        fetch('/users/' + id, {
-            method: 'DELETE'
-        }).then(res => {
-            if (res.status === 204) {
-                showMessage("User deleted");
-                getAllUsers();
+            const result = await response.json();
+
+            if (!response.ok) {
+                // If response.ok is false (e.g., 4xx or 5xx status)
+                errorDisplay.style.display = 'block';
+                errorDisplay.textContent = `Error ${response.status}: ${result.message || 'Unknown Error'}\n\n${JSON.stringify(result, null, 2)}`;
+                responseDisplay.textContent = ''; // Clear success message
             } else {
-                throw new Error("User not found");
+                // Successful response
+                responseDisplay.textContent = JSON.stringify(result, null, 2);
+                errorDisplay.style.display = 'none'; // Hide any previous errors
             }
-        }).catch(err => showMessage(err.message, true));
+        } catch (error) {
+            console.error('Fetch error:', error);
+            errorDisplay.style.display = 'block';
+            errorDisplay.textContent = `Network Error or API Down: ${error.message}\n\nPlease ensure your Spring Boot API is running at ${API_BASE_URL}`;
+            responseDisplay.textContent = ''; // Clear success message
+        }
     }
 
-    function getAllUsers() {
-        fetch('/users')
-            .then(res => res.json())
-            .then(data => {
-                const tbody = document.getElementById('userTable').querySelector('tbody');
-                tbody.innerHTML = '';
-                data.forEach(user => {
-                    const row = `<tr><td>${user.id}</td><td>${user.name}</td><td>${user.address}</td><td>${user.country}</td></tr>`;
-                    tbody.innerHTML += row;
-                });
-            }).catch(() => showMessage("Failed to fetch users", true));
+    function lookupIpLocation() {
+        const ip = document.getElementById('ipInput').value;
+        callApi('/ip', { ip: ip });
     }
 
-    window.onload = getAllUsers;
+    function lookupGpsLocation() {
+        const latitude = parseFloat(document.getElementById('latInput').value);
+        const longitude = parseFloat(document.getElementById('lonInput').value);
+
+        // Basic client-side validation
+        if (isNaN(latitude) || isNaN(longitude)) {
+            alert('Please enter valid numbers for Latitude and Longitude.');
+            return;
+        }
+
+        callApi('/gps', { latitude: latitude, longitude: longitude });
+    }
 </script>
-
 </body>
 </html>

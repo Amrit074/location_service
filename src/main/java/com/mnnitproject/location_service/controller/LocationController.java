@@ -57,9 +57,7 @@ public class LocationController {
         }
         logger.info("Received GPS lookup request for Lat: {}, Lon: {} from client: {}",
                 request.getLatitude(), request.getLongitude(), clientIp);
-
-        LocationResponse response = locationService.lookupGPSLocation(request, clientIp); // Calls GPS service method
-
+        LocationResponse response = locationService.lookupGPSLocation(request, clientIp);
         return ResponseEntity.ok(response);
     }
 }
