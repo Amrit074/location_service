@@ -110,41 +110,37 @@
 
 <script>
     async function lookupIpLocation() {
-        const ip = document.getElementById('ipInput').value;
+        const ipInput = document.getElementById('ipInput').value;
         const responseDisplay = document.getElementById('responseDisplay');
         const errorDisplay = document.getElementById('errorDisplay');
 
-        responseDisplay.textContent = 'Loading...';
+        responseDisplay.textContent = 'Searching...';
         errorDisplay.style.display = 'none';
 
-        const url = `/api/location?ipInput=${encodeURIComponent(ip)}`;
+        const url = `/api/location?ipInput=${encodeURIComponent(ipInput)}`;
 
         try {
-            // We use POST because your previous code used it.
-            // If this fails with "Method Not Allowed", change 'POST' to 'GET'.
+            // 2. Send the request (Try POST first, as per your previous code)
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: { 'Content-Type': 'application/json' }
             });
 
+            // 3. Handle the result
             const result = await response.json();
 
-            if (!response.ok) {
-                // Handle Errors (404, 500, etc.)
-                errorDisplay.style.display = 'block';
-                errorDisplay.textContent = `Error ${response.status}: ${result.message || 'Unknown Error'}`;
-                responseDisplay.textContent = '';
-            } else {
-                // Success!
+            if (response.ok) {
+                // Success: Show the JSON cleanly
                 responseDisplay.textContent = JSON.stringify(result, null, 2);
+            } else {
+                // Server Error (e.g., 404 Not Found, 405 Method Not Allowed)
+                throw new Error(`Server returned ${response.status}: ${result.message || 'Unknown error'}`);
             }
         } catch (error) {
-            // Handle Network Errors
-            console.error('Fetch error:', error);
+            // Network or Parsing Error
+            console.error(error);
             errorDisplay.style.display = 'block';
-            errorDisplay.textContent = `Network Error: ${error.message}. Is the backend running?`;
+            errorDisplay.textContent = error.message;
             responseDisplay.textContent = '';
         }
     }
