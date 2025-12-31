@@ -109,60 +109,44 @@
 </div>
 
 <script>
-    const API_BASE_URL = 'http://localhost:8080/api/location';
-
-    async function callApi(endpoint, data) {
+    async function lookupIpLocation() {
+        const ip = document.getElementById('ipInput').value;
         const responseDisplay = document.getElementById('responseDisplay');
         const errorDisplay = document.getElementById('errorDisplay');
+
         responseDisplay.textContent = 'Loading...';
         errorDisplay.style.display = 'none';
 
+        const url = `/api/location?ipInput=${encodeURIComponent(ip)}`;
+
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            // We use POST because your previous code used it.
+            // If this fails with "Method Not Allowed", change 'POST' to 'GET'.
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-
-                },
-                body: JSON.stringify(data)
+                }
             });
 
             const result = await response.json();
 
             if (!response.ok) {
-                // If response.ok is false (e.g., 4xx or 5xx status)
+                // Handle Errors (404, 500, etc.)
                 errorDisplay.style.display = 'block';
-                errorDisplay.textContent = `Error ${response.status}: ${result.message || 'Unknown Error'}\n\n${JSON.stringify(result, null, 2)}`;
-                responseDisplay.textContent = ''; // Clear success message
+                errorDisplay.textContent = `Error ${response.status}: ${result.message || 'Unknown Error'}`;
+                responseDisplay.textContent = '';
             } else {
-                // Successful response
+                // Success!
                 responseDisplay.textContent = JSON.stringify(result, null, 2);
-                errorDisplay.style.display = 'none'; // Hide any previous errors
             }
         } catch (error) {
+            // Handle Network Errors
             console.error('Fetch error:', error);
             errorDisplay.style.display = 'block';
-            errorDisplay.textContent = `Network Error or API Down: ${error.message}\n\nPlease ensure your Spring Boot API is running at ${API_BASE_URL}`;
+            errorDisplay.textContent = `Network Error: ${error.message}. Is the backend running?`;
             responseDisplay.textContent = '';
         }
-    }
-
-    function lookupIpLocation() {
-        const ip = document.getElementById('ipInput').value;
-        callApi('/ip', { ip: ip });
-    }
-
-    function lookupGpsLocation() {
-        const latitude = parseFloat(document.getElementById('latInput').value);
-        const longitude = parseFloat(document.getElementById('lonInput').value);
-
-
-        if (isNaN(latitude) || isNaN(longitude)) {
-            alert('Please enter valid numbers for Latitude and Longitude.');
-            return;
-        }
-
-        callApi('/gps', { latitude: latitude, longitude: longitude });
     }
 </script>
 </body>
