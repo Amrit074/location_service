@@ -1,4 +1,22 @@
 services:
+  app:
+    build: .
+    container_name: location_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      # Connect to the 'mysql' container service
+      SPRING_DATASOURCE_URL: jdbc:mysql://location_mysql:3306/location_service
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      # Connect to the 'redis' container service
+      SPRING_REDIS_HOST: location_redis
+      SPRING_REDIS_PORT: 6379
+
+  # 2. Database
   mysql:
     image: mysql:8.0
     container_name: location_mysql
@@ -10,6 +28,7 @@ services:
     volumes:
       - mysql_data_v2:/var/lib/mysql
     restart: always
+
 
   redis:
     image: redis:alpine
