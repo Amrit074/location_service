@@ -2,6 +2,7 @@ package com.mnnitproject.location_service.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,6 +11,11 @@ import org.sqlite.SQLiteDataSource;
 import javax.sql.DataSource;
 
 @Configuration
+@ConditionalOnProperty(
+        name = "whosonfirst.enabled",
+        havingValue = "true",
+        matchIfMissing = false
+)
 public class SQLiteConfig {
 
     @Value("${app.datasource.wof.url}")
