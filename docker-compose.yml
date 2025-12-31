@@ -5,30 +5,37 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
-      # Connect to the 'mysql' container service
-      SPRING_DATASOURCE_URL: jdbc:mysql://location_mysql:3306/location_service
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://location_mysql:3306/location_service?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      # Connect to the 'redis' container service
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SPRING_REDIS_HOST: location_redis
       SPRING_REDIS_PORT: 6379
+      WOF_DB_PATH: /data/whois.db
+    volumes:
+      - ./data:/data
 
-  # 2. Database
   mysql:
     image: mysql:8.0
     container_name: location_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: location_service
     ports:
       - "3308:3306"
     volumes:
       - mysql_data_v2:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
-
 
   redis:
     image: redis:alpine

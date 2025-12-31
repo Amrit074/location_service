@@ -38,3 +38,4 @@ build/
 
 # Who's On First Database
 /data/
+/.env
