@@ -109,7 +109,7 @@
 </div>
 
 <script>
-    const API_BASE_URL = 'http://localhost:8080/api/location'; // Your API base URL
+    const API_BASE_URL = 'http://localhost:8080/api/location';
 
     async function callApi(endpoint, data) {
         const responseDisplay = document.getElementById('responseDisplay');
@@ -122,8 +122,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Your backend has @CrossOrigin("*") but for production
-                    // you might need specific CORS headers if you add security.
+
                 },
                 body: JSON.stringify(data)
             });
@@ -144,7 +143,7 @@
             console.error('Fetch error:', error);
             errorDisplay.style.display = 'block';
             errorDisplay.textContent = `Network Error or API Down: ${error.message}\n\nPlease ensure your Spring Boot API is running at ${API_BASE_URL}`;
-            responseDisplay.textContent = ''; // Clear success message
+            responseDisplay.textContent = '';
         }
     }
 
@@ -157,7 +156,7 @@
         const latitude = parseFloat(document.getElementById('latInput').value);
         const longitude = parseFloat(document.getElementById('lonInput').value);
 
-        // Basic client-side validation
+
         if (isNaN(latitude) || isNaN(longitude)) {
             alert('Please enter valid numbers for Latitude and Longitude.');
             return;

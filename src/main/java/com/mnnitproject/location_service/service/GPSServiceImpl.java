@@ -49,6 +49,8 @@ public class GPSServiceImpl implements GPSService {
                 ? BETWEEN min_latitude AND max_latitude AND
                 ? BETWEEN min_longitude AND max_longitude AND
                 placetype = 'locality'
+            ORDER BY
+                    (max_latitude - min_latitude) * (max_longitude - min_longitude) ASC
             LIMIT 1;
             """;
 
@@ -74,7 +76,7 @@ public class GPSServiceImpl implements GPSService {
                         .build();
             } else {
                 logger.warn("Location not found in local WOF database for Lat: {}, Lon: {}", latitude, longitude);
-                throw new ResourceNotFoundException("Location not found for given coordinates in local Who's On First database.");
+                throw new ResourceNotFoundException("Location either outside India or not found for given coordinates in local Who's On First database.");
             }
         } catch (org.springframework.dao.DataAccessException e) {
             logger.error("Error querying local WOF database for GPS coordinates ({}, {}): {}", latitude, longitude, e.getMessage(), e);

@@ -1,8 +1,8 @@
 package com.mnnitproject.location_service.controller;
 
+import com.mnnitproject.location_service.dto.GPSLocationRequest;
 import com.mnnitproject.location_service.dto.IpLocationRequest;
 import com.mnnitproject.location_service.dto.LocationResponse;
-import com.mnnitproject.location_service.dto.GPSLocationRequest;
 import com.mnnitproject.location_service.service.LocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -27,37 +27,41 @@ public class LocationController {
     }
 
     @PostMapping("/ip")
-    public ResponseEntity<LocationResponse> getLocationByIp(@Valid @RequestBody IpLocationRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<LocationResponse> getLocationByIp(@Valid @RequestBody IpLocationRequest request,
+                                                            HttpServletRequest httpServletRequest) {
 
-        String clientIp = httpServletRequest.getRemoteAddr();
-        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-            clientIp = httpServletRequest.getRemoteAddr();
-            logger.debug("Client IP from remote address: {}", clientIp);
-        } else {
-            logger.debug("Client IP from X-Forwarded-For: {}", clientIp);
-        }
+        String clientIp = getClientIp(httpServletRequest);
+
         logger.info("Received IP lookup request for IP: {} from client: {}", request.getIp(), clientIp);
 
         LocationResponse response = locationService.lookupIpLocation(request, clientIp);
-
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/gps")
-    public ResponseEntity<LocationResponse> getLocationByGps(
-            @Valid @RequestBody GPSLocationRequest request,
-            HttpServletRequest httpServletRequest) {
+    public ResponseEntity<LocationResponse> getLocationByGps(@Valid @RequestBody GPSLocationRequest request,
+                                                             HttpServletRequest httpServletRequest) {
 
-        String clientIp = httpServletRequest.getHeader("X-Forwarded-For");
-        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-            clientIp = httpServletRequest.getRemoteAddr();
-            logger.debug("Client IP from remote address: {}", clientIp);
-        } else {
-            logger.debug("Client IP from X-Forwarded-For: {}", clientIp);
-        }
+        String clientIp = getClientIp(httpServletRequest);
+
         logger.info("Received GPS lookup request for Lat: {}, Lon: {} from client: {}",
                 request.getLatitude(), request.getLongitude(), clientIp);
+
         LocationResponse response = locationService.lookupGPSLocation(request, clientIp);
         return ResponseEntity.ok(response);
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            String clientIp = xForwardedFor.split(",")[0].trim();
+            logger.debug("Resolved Client IP from X-Forwarded-For: {} (Original Header: {})", clientIp, xForwardedFor);
+            return clientIp;
+        }
+
+        logger.debug("Resolved Client IP from Remote Address: {}", remoteAddr);
+        return remoteAddr;
     }
 }
