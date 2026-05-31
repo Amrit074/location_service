@@ -243,7 +243,7 @@
             <h1>IP Location Service</h1>
             <p class="subtitle">Resolve public IP addresses with MaxMind GeoLite2, Redis caching, and API usage logging.</p>
         </div>
-        <span id="status" class="status">Checking API</span>
+        <span id="status" class="status">Ready</span>
     </header>
 
     <section class="grid">
@@ -251,7 +251,7 @@
             <h2>Lookup</h2>
             <label for="ipInput">IP address</label>
             <div class="input-row">
-                <input id="ipInput" name="ip" type="text" value="8.8.8.8" autocomplete="off" placeholder="8.8.8.8" required>
+                <input id="ipInput" name="ip" type="text" value="8.8.8.8" autocomplete="off" inputmode="decimal" placeholder="8.8.8.8" required>
                 <button id="submitButton" type="submit">Search</button>
             </div>
             <div class="samples" aria-label="Sample IP addresses">
@@ -274,6 +274,7 @@
     const result = document.getElementById("result");
     const status = document.getElementById("status");
     const submitButton = document.getElementById("submitButton");
+    const ipv4Pattern = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 
     function renderResult(data) {
         result.className = "";
@@ -296,6 +297,12 @@
     }
 
     async function lookupIp(ip) {
+        if (!ipv4Pattern.test(ip)) {
+            renderError("Enter a valid IPv4 address, for example 8.8.8.8.");
+            status.textContent = "Invalid IP";
+            return;
+        }
+
         submitButton.disabled = true;
         status.textContent = "Searching";
         result.className = "result-empty";
@@ -315,7 +322,7 @@
             status.textContent = "API online";
         } catch (error) {
             renderError(error.message);
-            status.textContent = "Check failed";
+            status.textContent = "Lookup failed";
         } finally {
             submitButton.disabled = false;
         }
@@ -333,11 +340,7 @@
         });
     });
 
-    fetch("/api/location/ip", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ip: "8.8.8.8"}),
-    })
+    fetch("/api/health")
         .then((response) => {
             status.textContent = response.ok ? "API online" : "API reachable";
         })
