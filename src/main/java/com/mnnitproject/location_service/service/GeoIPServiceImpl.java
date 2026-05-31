@@ -97,8 +97,7 @@ public class GeoIPServiceImpl implements GeoIPService {
         } catch (AddressNotFoundException e) {
             throw new ResourceNotFoundException("IP not found in MaxMind database: " + ipAddress);
         } catch (GeoIp2Exception | IOException e) {
-            logger.error("GeoIP lookup failed for IP {}: {}", ipAddress, e.getMessage(), e);
-            throw new ResourceNotFoundException("Location lookup is temporarily unavailable for IP: " + ipAddress);
+            throw new RuntimeException("An error occurred during GeoIP lookup", e);
         }
     }
 }

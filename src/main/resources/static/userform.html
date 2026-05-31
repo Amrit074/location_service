@@ -340,13 +340,7 @@
         });
     });
 
-    fetch("/api/health")
-        .then((response) => {
-            status.textContent = response.ok ? "API online" : "API reachable";
-        })
-        .catch(() => {
-            status.textContent = "API unavailable";
-        });
+    status.textContent = "Ready";
 </script>
 </body>
 </html>
