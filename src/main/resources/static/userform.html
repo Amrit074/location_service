@@ -149,6 +149,33 @@
             margin-top: 14px;
         }
 
+        .my-ip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fbfcff;
+        }
+
+        .my-ip span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .my-ip strong {
+            display: block;
+            margin-top: 4px;
+            overflow-wrap: anywhere;
+            font-size: 15px;
+        }
+
         .sample {
             min-height: 32px;
             border: 1px solid var(--line);
@@ -226,6 +253,10 @@
                 justify-content: center;
             }
 
+            .my-ip {
+                display: block;
+            }
+
             .panel + .panel {
                 margin-top: 16px;
             }
@@ -259,6 +290,13 @@
                 <button class="sample" type="button" data-ip="1.1.1.1">1.1.1.1</button>
                 <button class="sample" type="button" data-ip="208.67.222.222">208.67.222.222</button>
             </div>
+            <div class="my-ip">
+                <div>
+                    <span>Your IP</span>
+                    <strong id="clientIp">Detecting...</strong>
+                </div>
+                <button id="useClientIp" class="sample" type="button" disabled>Use</button>
+            </div>
         </form>
 
         <section class="panel" aria-live="polite">
@@ -274,6 +312,8 @@
     const result = document.getElementById("result");
     const status = document.getElementById("status");
     const submitButton = document.getElementById("submitButton");
+    const clientIp = document.getElementById("clientIp");
+    const useClientIp = document.getElementById("useClientIp");
     const ipv4Pattern = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 
     function renderResult(data) {
@@ -340,7 +380,31 @@
         });
     });
 
+    async function loadClientIp() {
+        try {
+            const response = await fetch("/api/location/me");
+            const payload = await response.json();
+            if (!response.ok || !payload.ip) {
+                throw new Error("Unable to detect requester IP");
+            }
+            clientIp.textContent = payload.ip;
+            useClientIp.disabled = false;
+        } catch (error) {
+            clientIp.textContent = "Unavailable";
+            useClientIp.disabled = true;
+        }
+    }
+
+    useClientIp.addEventListener("click", () => {
+        const ip = clientIp.textContent.trim();
+        if (ip && ip !== "Unavailable") {
+            ipInput.value = ip;
+            lookupIp(ip);
+        }
+    });
+
     status.textContent = "Ready";
+    loadClientIp();
 </script>
 </body>
 </html>

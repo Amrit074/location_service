@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/api/location")
@@ -36,6 +38,12 @@ public class LocationController {
 
         LocationResponse response = locationService.lookupIpLocation(request, clientIp);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, String>> getRequestingIp(HttpServletRequest httpServletRequest) {
+        String clientIp = getClientIp(httpServletRequest);
+        return ResponseEntity.ok(Map.of("ip", clientIp));
     }
 
     @PostMapping("/gps")
