@@ -1,149 +1,346 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Service Frontend</title>
+    <title>IP Location Service</title>
     <style>
+        :root {
+            color-scheme: light;
+            --bg: #f7f8fb;
+            --surface: #ffffff;
+            --ink: #172033;
+            --muted: #697386;
+            --line: #d9deea;
+            --accent: #1463ff;
+            --accent-dark: #0d47bd;
+            --success: #0f766e;
+            --danger: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
-        .container {
-            max-width: 600px;
-            margin: 30px auto;
-            background-color: #fff;
-            padding: 25px;
+
+        .shell {
+            width: min(1040px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 42px 0;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 34px;
+            line-height: 1.1;
+            font-weight: 750;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--muted);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(280px, 360px) 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
         }
-        h1, h2 {
-            color: #0056b3;
-            text-align: center;
+
+        .panel h2 {
+            margin: 0 0 16px;
+            font-size: 17px;
+            line-height: 1.3;
         }
+
         label {
             display: block;
             margin-bottom: 8px;
-            font-weight: bold;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 650;
         }
-        input[type="text"], input[type="number"] {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+
+        .input-row {
+            display: flex;
+            gap: 10px;
         }
+
+        input {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 0 12px;
+            color: var(--ink);
+            font: inherit;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(20, 99, 255, 0.12);
+        }
+
         button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
+            min-height: 44px;
+            border: 0;
+            border-radius: 6px;
+            padding: 0 16px;
+            background: var(--accent);
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
             cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
+            white-space: nowrap;
         }
+
         button:hover {
-            background-color: #0056b3;
+            background: var(--accent-dark);
         }
-        .result-box {
-            background-color: #e9ecef;
-            border: 1px solid #ced4da;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-            white-space: pre-wrap; /* Preserve whitespace and line breaks */
-            font-family: 'Courier New', Courier, monospace;
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.68;
+        }
+
+        .samples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .sample {
+            min-height: 32px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .sample:hover {
+            background: #eef3ff;
+            color: var(--accent-dark);
+        }
+
+        .result-empty,
+        .error {
+            color: var(--muted);
             font-size: 14px;
         }
-        .error-box {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-            white-space: pre-wrap;
-            font-family: 'Courier New', Courier, monospace;
+
+        .error {
+            color: var(--danger);
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .metric {
+            min-height: 78px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 12px;
+            background: #fbfcff;
+        }
+
+        .metric span {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .metric strong {
+            display: block;
+            overflow-wrap: anywhere;
+            font-size: 16px;
+            line-height: 1.35;
+        }
+
+        .source {
+            margin-top: 14px;
+            padding: 12px;
+            border-left: 3px solid var(--success);
+            background: #eefaf8;
+            color: #134e4a;
             font-size: 14px;
         }
-        .section {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .section:last-child {
-            border-bottom: none;
+
+        @media (max-width: 780px) {
+            .topbar,
+            .grid,
+            .input-row {
+                display: block;
+            }
+
+            .status,
+            button {
+                width: 100%;
+                margin-top: 12px;
+                justify-content: center;
+            }
+
+            .panel + .panel {
+                margin-top: 16px;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>Location Service API Client</h1>
+<main class="shell">
+    <header class="topbar">
+        <div>
+            <h1>IP Location Service</h1>
+            <p class="subtitle">Resolve public IP addresses with MaxMind GeoLite2, Redis caching, and API usage logging.</p>
+        </div>
+        <span id="status" class="status">Ready</span>
+    </header>
 
-    <div class="section">
-        <h2>IP Lookup</h2>
-        <label for="ipInput">Enter IP Address:</label>
-        <input type="text" id="ipInput" value="8.8.8.8" placeholder="e.g., 8.8.8.8">
-        <button onclick="lookupIpLocation()">Lookup IP</button>
-    </div>
+    <section class="grid">
+        <form id="lookupForm" class="panel">
+            <h2>Lookup</h2>
+            <label for="ipInput">IP address</label>
+            <div class="input-row">
+                <input id="ipInput" name="ip" type="text" value="8.8.8.8" autocomplete="off" inputmode="decimal" placeholder="8.8.8.8" required>
+                <button id="submitButton" type="submit">Search</button>
+            </div>
+            <div class="samples" aria-label="Sample IP addresses">
+                <button class="sample" type="button" data-ip="8.8.8.8">8.8.8.8</button>
+                <button class="sample" type="button" data-ip="1.1.1.1">1.1.1.1</button>
+                <button class="sample" type="button" data-ip="208.67.222.222">208.67.222.222</button>
+            </div>
+        </form>
 
-    <div class="section">
-        <h2>GPS Lookup</h2>
-        <label for="latInput">Latitude:</label>
-        <input type="number" id="latInput" value="37.787221" placeholder="e.g., 37.787221">
-        <label for="lonInput">Longitude:</label>
-        <input type="number" id="lonInput" value="-122.400098" placeholder="e.g., -122.400098">
-        <button onclick="lookupGpsLocation()">Lookup GPS</button>
-    </div>
+        <section class="panel" aria-live="polite">
+            <h2>Result</h2>
+            <div id="result" class="result-empty">Run a lookup to see city, region, country, and coordinates.</div>
+        </section>
+    </section>
+</main>
 
-    <div class="result-box" id="responseDisplay">
-        API Response will appear here...
-    </div>
-    <div class="error-box" id="errorDisplay" style="display: none;">
-        Errors will appear here...
-    </div>
-</div>
 <script>
-    async function lookupIpLocation() {
-        const ipInput = document.getElementById('ipInput').value;
-        const responseDisplay = document.getElementById('responseDisplay');
-        const errorDisplay = document.getElementById('errorDisplay');
-        responseDisplay.textContent = 'Searching...';
-        errorDisplay.style.display = 'none';
+    const form = document.getElementById("lookupForm");
+    const ipInput = document.getElementById("ipInput");
+    const result = document.getElementById("result");
+    const status = document.getElementById("status");
+    const submitButton = document.getElementById("submitButton");
+    const ipv4Pattern = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 
-        const url = '/api/location/ip';
+    function renderResult(data) {
+        result.className = "";
+        result.innerHTML = `
+            <div class="result-grid">
+                <div class="metric"><span>IP</span><strong>${data.ipAddress || "Unavailable"}</strong></div>
+                <div class="metric"><span>City</span><strong>${data.city || "Unavailable"}</strong></div>
+                <div class="metric"><span>State</span><strong>${data.state || "Unavailable"}</strong></div>
+                <div class="metric"><span>Country</span><strong>${data.country || "Unavailable"}</strong></div>
+                <div class="metric"><span>Latitude</span><strong>${data.latitude ?? "Unavailable"}</strong></div>
+                <div class="metric"><span>Longitude</span><strong>${data.longitude ?? "Unavailable"}</strong></div>
+            </div>
+            <div class="source">${data.message || "Resolved from configured geolocation provider."}</div>
+        `;
+    }
 
-        const payload = {
-            ip: ipInput
-        };
+    function renderError(message) {
+        result.className = "error";
+        result.textContent = message;
+    }
+
+    async function lookupIp(ip) {
+        if (!ipv4Pattern.test(ip)) {
+            renderError("Enter a valid IPv4 address, for example 8.8.8.8.");
+            status.textContent = "Invalid IP";
+            return;
+        }
+
+        submitButton.disabled = true;
+        status.textContent = "Searching";
+        result.className = "result-empty";
+        result.textContent = "Querying location service...";
 
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
+            const response = await fetch("/api/location/ip", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ip}),
             });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                responseDisplay.textContent = JSON.stringify(result, null, 2);
-            } else {
-                throw new Error(`Server returned ${response.status}: ${result.message || 'Unknown error'}`);
+            const payload = await response.json();
+            if (!response.ok) {
+                throw new Error(payload.message || payload.detail || `Request failed with ${response.status}`);
             }
+            renderResult(payload);
+            status.textContent = "API online";
         } catch (error) {
-            console.error(error);
-            errorDisplay.style.display = 'block';
-            errorDisplay.textContent = error.message;
-            responseDisplay.textContent = '';
+            renderError(error.message);
+            status.textContent = "Lookup failed";
+        } finally {
+            submitButton.disabled = false;
         }
     }
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        lookupIp(ipInput.value.trim());
+    });
+
+    document.querySelectorAll("[data-ip]").forEach((button) => {
+        button.addEventListener("click", () => {
+            ipInput.value = button.dataset.ip;
+            lookupIp(button.dataset.ip);
+        });
+    });
+
+    status.textContent = "Ready";
 </script>
 </body>
 </html>
