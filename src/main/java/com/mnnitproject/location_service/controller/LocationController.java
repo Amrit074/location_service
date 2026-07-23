@@ -5,8 +5,7 @@ import com.mnnitproject.location_service.dto.IpLocationRequest;
 import com.mnnitproject.location_service.dto.LocationResponse;
 import com.mnnitproject.location_service.service.LocationService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +29,6 @@ public class LocationController {
         this.locationService = locationService;
     }
 
-    @GetMapping("/")
-    public void redirectRoot(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/userform.html");
-    }
 
     @PostMapping("/ip")
     public ResponseEntity<LocationResponse> getLocationByIp(@Valid @RequestBody IpLocationRequest request,
